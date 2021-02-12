@@ -1,0 +1,3 @@
+dataset_path: "/home/nishita/datasets/chest_xray"
+model_path: "/home/nishita/models/test1.hd5"
+
