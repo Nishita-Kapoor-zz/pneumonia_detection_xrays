@@ -1,2 +1,7 @@
 torchsummary
-
+yaml
+torchvision
+matplotlib
+torch
+pandas
+seaborn

@@ -1,3 +1,8 @@
-dataset_path: "/home/nishita/datasets/chest_xray"
-model_path: "/home/nishita/models/test1.hd5"
+datadir: "/home/nishita/datasets/chest_xray"
 
+save_file_name: "vgg16-chest-4.pt"
+checkpoint_path: "vgg16-chest-4.pth"
+
+plot: True
+
+batch_size: 128
