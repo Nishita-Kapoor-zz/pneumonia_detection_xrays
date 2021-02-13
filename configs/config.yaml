@@ -3,6 +3,8 @@ datadir: "/home/nishita/datasets/chest_xray"
 save_file_name: "vgg16-chest-4.pt"
 checkpoint_path: "vgg16-chest-4.pth"
 
-plot: True
+plot: False
 
-batch_size: 128
+model: "vgg16"
+batch_size: 8
+
