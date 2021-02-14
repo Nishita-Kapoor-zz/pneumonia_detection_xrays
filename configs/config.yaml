@@ -1,10 +1,20 @@
+run_name: "vgg16-pneumonia-run1"
+
 datadir: "/home/nishita/datasets/chest_xray"
 
-save_file_name: "vgg16-chest-4.pt"
-checkpoint_path: "vgg16-chest-4.pth"
+model: "vgg16"
 
 plot: False
 
-model: "vgg16"
-batch_size: 8
+train:
+  batch_size: 8
+  n_epochs: 10
+
+#evaluate:
+#  img_path: "path/here"
+#  num_images: -1
+#  data_split: "val"
+
+
+
 

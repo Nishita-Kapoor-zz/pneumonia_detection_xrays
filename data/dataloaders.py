@@ -1,4 +1,6 @@
 from torchvision import transforms
+from torchvision import datasets
+from torch.utils.data import DataLoader
 
 image_transforms = {
     # Train uses data augmentation
@@ -31,3 +33,21 @@ image_transforms = {
     ]),
 }
 
+def create_dataloaders(datadir, batch_size=128):
+
+    data = {
+        'train':
+            datasets.ImageFolder(root=datadir + "/train/", transform=image_transforms['train']),
+        'val':
+            datasets.ImageFolder(root=datadir + "/val/", transform=image_transforms['val']),
+        'test':
+            datasets.ImageFolder(root=datadir + "/test/", transform=image_transforms['test'])
+    }
+    # Dataloader iterators
+    dataloaders = {
+        'train': DataLoader(data['train'], batch_size=batch_size, shuffle=True),
+        'val': DataLoader(data['val'], batch_size=batch_size, shuffle=True),
+        'test': DataLoader(data['test'], batch_size=batch_size, shuffle=True)
+    }
+
+    return data, dataloaders
