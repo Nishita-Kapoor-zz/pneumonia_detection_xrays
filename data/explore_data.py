@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib
+matplotlib.use("Agg")
 
 
 def data_analysis(**cfg):
@@ -21,6 +23,7 @@ def data_analysis(**cfg):
     plt.title('Training Images by Category')
 
     plt.savefig("./output/data_analysis/plots/train_category.png", dpi=300)
+    plt.close()
 
     # Plot 2: Distribution Plot - Average Sizes
     img_dsc = image_df.groupby('category').mean()
@@ -33,6 +36,7 @@ def data_analysis(**cfg):
     plt.ylabel('Density')
     plt.title('Average Size Distribution')
     plt.savefig("./output/data_analysis/plots/average_size.png", dpi=300)
+    plt.close()
 
     print("Both plots created and saved in ./output/data_analysis/plots/")
 

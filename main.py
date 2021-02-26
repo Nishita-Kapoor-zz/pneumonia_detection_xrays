@@ -7,6 +7,7 @@ import argparse
 from data.explore_data import data_analysis
 from scripts.train import train
 from scripts.evaluate import evaluate, predict
+import os
 
 
 # Main function
@@ -20,6 +21,8 @@ def main():
     with open(str(args.config), "r") as ymlfile:
         cfg = yaml.safe_load(ymlfile)
         print(cfg)
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = cfg["gpus"]
 
     task_map = {"EDA": data_analysis, "train": train,
                 "evaluate": evaluate, "predict": predict}

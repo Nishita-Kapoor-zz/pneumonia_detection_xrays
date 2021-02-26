@@ -1,6 +1,6 @@
-torchsummary
-yaml
+pyaml
 torchvision
+torchsummary
 matplotlib
 torch
 pandas
