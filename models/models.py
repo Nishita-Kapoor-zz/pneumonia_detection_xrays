@@ -1,6 +1,7 @@
 from torchvision import models
 import torch.nn as nn
 
+
 def get_pretrained_model(model_name):
     """Retrieve a pre-trained model from torchvision
 

@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-def create_plots(**cfg):
+
+def data_analysis(**cfg):
 
     cat_df, image_df = create_csv(cfg["datadir"])
 
@@ -34,6 +35,7 @@ def create_plots(**cfg):
     plt.savefig("./output/data_analysis/plots/average_size.png", dpi=300)
 
     print("Both plots created and saved in ./output/data_analysis/plots/")
+
 
 def create_csv(datadir):
 
@@ -97,4 +99,3 @@ def create_csv(datadir):
         image_df.to_csv("./output/data_analysis/tables/image_df.csv")
 
     return cat_df, image_df
-

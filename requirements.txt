@@ -6,3 +6,4 @@ torch
 pandas
 seaborn
 tqdm
+numpy

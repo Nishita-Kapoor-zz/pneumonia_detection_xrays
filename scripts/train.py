@@ -1,15 +1,15 @@
 import numpy as np
 from timeit import default_timer as timer
 import torch
-import pandas as pd
 from models.models import get_pretrained_model
 from torch import cuda, optim
 import torch.nn as nn
 from torchsummary import summary
 from data.dataloaders import create_dataloaders
 import os
-import matplotlib.pyplot as plt
 from tqdm import tqdm
+from utils.utils import save_checkpoint, save_and_plot_results, load_checkpoint
+
 
 # Training the model
 def train(**cfg):
@@ -27,7 +27,7 @@ def train(**cfg):
      """
 
     save_path = "./output/train/" + cfg["run_name"] + "/"
-    checkpoint = save_path + "checkpoint.pth"
+    checkpoint_path = save_path + "checkpoint.pth"
 
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -50,6 +50,7 @@ def train(**cfg):
             multi_gpu = True
         else:
             multi_gpu = False
+
     # Move to gpu and parallelize
     if train_on_gpu:
         model = model.to('cuda')
@@ -70,13 +71,14 @@ def train(**cfg):
         idx: class_
         for class_, idx in model.class_to_idx.items()
     }
+
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.parameters())
+    model.optimizer = optimizer
 
-    # Early stopping intialization
+    # Early stopping initialization
     epochs_no_improve = 0
     valid_loss_min = np.Inf
-    valid_max_acc = 0
     history = []
     # Number of epochs already trained (if using loaded in model weights)
     try:
@@ -85,6 +87,7 @@ def train(**cfg):
         model.epochs = 0
         print(f'Starting Training from Scratch.\n')
     overall_start = timer()
+
     # Main loop
     for epoch in tqdm(range(cfg["train"]["n_epochs"])):
         # keep track of training and validation loss each epoch
@@ -114,21 +117,16 @@ def train(**cfg):
             # Calculate accuracy by finding max log probability
             _, pred = torch.max(output, dim=1)
             correct_tensor = pred.eq(target.data.view_as(pred))
-            correct = np.squeeze(correct_tensor.numpy()) if not train_on_gpu else np.squeeze(
-                correct_tensor.cpu().numpy())
-            # calculate test accuracy for each object class
-            '''for i in range(batch_size):       
-                label = target.data[i]
-                class_correct[label] += correct[i].item()
-                class_total[label] += 1'''
             # Need to convert correct tensor from int to float to average
             accuracy = torch.mean(correct_tensor.type(torch.FloatTensor))
             # Multiply average accuracy times the number of examples in batch
             train_acc += accuracy.item() * data.size(0)
             # Track training progress
             print(
-                f'Epoch: {epoch}\t{100 * (ii + 1) / len(dataloaders["train"]):.2f}% complete. {timer() - start:.2f} seconds elapsed in epoch.',
+                f'Epoch: {epoch}\t{100 * (ii + 1) / len(dataloaders["train"]):.2f}% complete. {timer() - start:.2f} '
+                f'seconds elapsed in epoch.',
                 end='\r')
+
         # After training loops ends, start validation
         else:
             model.epochs += 1
@@ -172,11 +170,12 @@ def train(**cfg):
                 # Save the model if validation loss decreases
                 if valid_loss < valid_loss_min:
                     # Save model
-                    torch.save(model.state_dict(), checkpoint)
+                    save_checkpoint(model, checkpoint_path)
+                    # torch.save(model.state_dict(), checkpoint)
                     # Track improvement
                     epochs_no_improve = 0
                     valid_loss_min = valid_loss
-                    valid_best_acc = valid_acc
+                    # valid_best_acc = valid_acc
                     best_epoch = epoch
                 # Otherwise increment count of epochs with no improvement
                 else:
@@ -184,30 +183,18 @@ def train(**cfg):
                     # Trigger early stopping
                     if epochs_no_improve >= max_epochs_stop:
                         print(
-                            f'\nEarly Stopping! Total epochs: {epoch}. Best epoch: {best_epoch} with loss: {valid_loss_min:.2f} and acc: {100 * valid_acc:.2f}%'
+                            f'\nEarly Stopping! Total epochs: {epoch}. Best epoch: {best_epoch} with loss:'
+                            f' {valid_loss_min:.2f} and acc: {100 * valid_acc:.2f}%'
                         )
                         total_time = timer() - overall_start
                         print(
                             f'{total_time:.2f} total seconds elapsed. {total_time / (epoch + 1):.2f} seconds per epoch.'
                         )
                         # Load the best state dict
-                        model.load_state_dict(torch.load(checkpoint))
-                        # Attach the optimizer
-                        model.optimizer = optimizer
-                        # Format history
-                        history = pd.DataFrame(
-                            history,
-                            columns=[
-                                'train_loss', 'valid_loss', 'train_acc',
-                                'valid_acc'
-                            ])
+                        load_checkpoint(**cfg)
 
                         save_and_plot_results(history, save_path)
 
-                        return model
-
-    # Attach the optimizer
-    model.optimizer = optimizer
     # Record overall time and print out stats
     total_time = timer() - overall_start
     print(
@@ -216,40 +203,7 @@ def train(**cfg):
     print(
         f'{total_time:.2f} total seconds elapsed. {total_time / (epoch + 1):.2f} seconds per epoch.'
     )
-    # Format history
-    history = pd.DataFrame(
-        history,
-        columns=['train_loss', 'valid_loss', 'train_acc', 'valid_acc'])
 
     save_and_plot_results(history, save_path)
+    save_checkpoint(model, checkpoint_path)
 
-    return model
-
-def save_and_plot_results(history, save_path):
-
-    # Save history as a csv file
-    history.to_csv(save_path + "summary.csv")
-
-    # Loss Plot
-    plt.figure(figsize=(8, 6))
-    for c in ['train_loss', 'valid_loss']:
-        plt.plot(
-            history[c], label=c)
-    plt.legend()
-    plt.xlabel('Epoch')
-    plt.ylabel('Average Negative Log Likelihood')
-    plt.title('Training and Validation Losses')
-    plt.savefig(save_path + "loss.png", dpi=400)
-
-    # Accuracy Plot
-    plt.figure(figsize=(8, 6))
-    for c in ['train_acc', 'valid_acc']:
-        plt.plot(
-            100 * history[c], label=c)
-    plt.legend()
-    plt.xlabel('Epoch')
-    plt.ylabel('Average Accuracy')
-    plt.title('Training and Validation Accuracy')
-    plt.savefig(save_path + "accuracy.png", dpi=400)
-
-    print("Training finished successfully and all results saved in " + save_path)

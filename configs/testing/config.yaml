@@ -1,0 +1,31 @@
+# Output files/checkpoints will be stored with this run name folder structure.
+# Ensure the model name is first part of the run, e.g. "vgg16-pneumonia-run1"
+run_name: "vgg16-pneumonia-run4"
+
+datadir: "/home/nishita/datasets/chest_xray"
+
+# Choose from "vgg16" or "resnet"
+model: "vgg16"
+
+# Each task will be run sequentially one after the other in the given order:
+# Choose from: ["EDA", "train", "evaluate", "predict"]
+tasks: ["train", "evaluate", "predict"]
+
+train:
+  batch_size: 8
+  n_epochs: 2
+  optimizer: "Adam"
+  learning_rate: 1e-4
+
+evaluate:
+  batch_size: 8
+  data_split: ["train", "val", "test"]
+
+predict:
+  image_path: "image/path/here"
+
+
+
+
+
+
