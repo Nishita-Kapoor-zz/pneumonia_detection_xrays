@@ -8,7 +8,7 @@ from torchsummary import summary
 from data.dataloaders import create_dataloaders
 import os
 from tqdm import tqdm
-from utils.utils import save_checkpoint, save_and_plot_results, load_checkpoint
+from utils.utils import save_checkpoint, save_and_plot_results, load_checkpoint, check_gpu
 
 
 # Training the model
@@ -39,18 +39,7 @@ def train(**cfg):
 
     model = get_pretrained_model(model_name=cfg["model"])
 
-    train_on_gpu = cuda.is_available()
-    print(f'Train on gpu: {train_on_gpu}')
-
-    # Number of gpus
-    if train_on_gpu:
-        gpu_count = cuda.device_count()
-        print(f'{gpu_count} gpus detected.')
-        if gpu_count > 1:
-            multi_gpu = True
-        else:
-            multi_gpu = False
-
+    train_on_gpu, multi_gpu = check_gpu()
     # Move to gpu and parallelize
     if train_on_gpu:
         model = model.to('cuda')

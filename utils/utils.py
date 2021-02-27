@@ -93,17 +93,7 @@ def save_checkpoint(model, path):
     assert (model_name in ['vgg16', 'resnet50'
                            ]), "Path must have the correct model name"
 
-    train_on_gpu = cuda.is_available()
-    print(f'Train on gpu: {train_on_gpu}')
-
-    # Number of gpus
-    if train_on_gpu:
-        gpu_count = cuda.device_count()
-        print(f'{gpu_count} gpus detected.')
-        if gpu_count > 1:
-            multi_gpu = True
-        else:
-            multi_gpu = False
+    train_on_gpu, multi_gpu = check_gpu()
 
     # Basic details
     checkpoint = {
@@ -150,17 +140,7 @@ def load_checkpoint(**cfg):
         None, save the `model` to `path`
 
     """
-    train_on_gpu = cuda.is_available()
-    print(f'Train on gpu: {train_on_gpu}')
-
-    # Number of gpus
-    if train_on_gpu:
-        gpu_count = cuda.device_count()
-        print(f'{gpu_count} gpus detected.')
-        if gpu_count > 1:
-            multi_gpu = True
-        else:
-            multi_gpu = False
+    train_on_gpu, multi_gpu = check_gpu()
 
     save_path = "./output/train/" + cfg["run_name"] + "/"
     checkpoint_path = save_path + "checkpoint.pth"
@@ -213,8 +193,24 @@ def load_checkpoint(**cfg):
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
     if multi_gpu:
-        summary(model.module, input_size=(3, 224, 224), batch_size=8)
+        summary(model.module, input_size=(3, 224, 224), batch_size=cfg['evaluate']['batch_size'])
     else:
-        summary(model, input_size=(3, 224, 224), batch_size=8)
+        summary(model, input_size=(3, 224, 224), batch_size=cfg['evaluate']['batch_size'])
 
-    return model, optimizer, train_on_gpu, multi_gpu
+    return model, optimizer
+
+
+def check_gpu():
+    train_on_gpu = cuda.is_available()
+    print(f'Train on gpu: {train_on_gpu}')
+
+    # Number of gpus
+    if train_on_gpu:
+        gpu_count = cuda.device_count()
+        print(f'{gpu_count} gpus detected.')
+        if gpu_count > 1:
+            multi_gpu = True
+        else:
+            multi_gpu = False
+    return train_on_gpu, multi_gpu
+

@@ -10,7 +10,7 @@ gpus: "0"
 
 # Each task will be run sequentially one after the other in the given order:
 # Choose from: ["EDA", "train", "evaluate", "predict"]
-tasks: ["train", "evaluate"]
+tasks: ["evaluate"]
 
 train:
   batch_size: 8
@@ -20,7 +20,7 @@ train:
 
 evaluate:
   batch_size: 8
-  data_split: ["train", "val", "test"]
+  data_split: ['val' , 'test'] #choose between 'train', 'val', 'test'
 
 predict:
   image_path: "image/path/here"
