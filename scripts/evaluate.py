@@ -6,18 +6,39 @@ from PIL import Image
 from utils.utils import load_checkpoint, check_gpu
 import os
 import pandas as pd
+from torchvision import transforms
 
 def predict(**cfg):
-    image_path = cfg["img_path"]
-    image = Image.open(image_path)
 
-    model = load_checkpoint(**cfg)
+    # Create a test loader
+    loader = transforms.Compose([
+        transforms.Resize(size=256),
+        transforms.CenterCrop(size=224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
+    # Load the image as a Pytorch Tensor
+    image = loader(Image.open(cfg["predict"]["image_path"]).convert("RGB")).float().unsqueeze(0)
+
+    # Load Model
+    model, _ = load_checkpoint(**cfg)
+
+    # Check GPU availability
+    train_gpu, _ = check_gpu()
+    if train_gpu:
+        image = image.cuda()
+
+    # Get model prediction
     output = model(image)
-    if output == 0:
-        print("This is a normal image")
-    elif output == 1:
-        print("This is a pneumonia image")
-        
+    _, pred = torch.max(output, 1)
+
+    # Check prediction - Normal or Pneumonia
+    if pred == 0:
+        print("Prediction: Normal")
+    elif pred == 1:
+        print("Prediction: Pneumonia! Please see a doctor ASAP!.")
+
 
 def evaluate(**cfg):
 
