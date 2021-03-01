@@ -1,13 +1,21 @@
 # Predicting Normal or Pneumonia Chest X-rays using Deep Learning
-This is my first attempt at a Machine Learning project. My goal is to get familiar with hands-on machine learning
-with Pytorch and implementing various ML algorithms.
-This project uses Image Classification Models to predict whether a chest x-ray is NORMAL or with PNEUMONIA.
+This is my first attempt at a Machine Learning project. My goal was to get familiar with hands-on machine learning
+using Pytorch and implementing various ML algorithms.
+
+#### Abstract:
+Pneumonia is a life-threatening infectious disease affecting one or both lungs in humans commonly caused by bacteria 
+called Streptococcus pneumoniae. Chest X-Rays which are used to diagnose pneumonia, need expert radiotherapists for 
+evaluation. Thus, developing an automatic system for detecting pneumonia would be beneficial for treating the disease 
+without any delay particularly in remote areas. 
+
+This work, appraises the functionality of pre-trained CNN models followed by different classifiers for
+the classification of abnormal and normal chest X-Rays.
 
 ## Table of Contents
 
-- [Installation](#installation)
-- [Use](#use)  
-- [How to Run](#how-to-run)
+- [Installation](#installation)  
+- [Files and Directories](#files-and-directories)
+- [Usage](#usage)  
 - [Data](#dataset)    
 - [Models](#models)    
 - [Results](#results)    
@@ -26,14 +34,22 @@ pip install -r requirements.txt
 ```
 Next download data from Kaggle following this [link](https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia).
 Note - downloading data from Kaggle requires Kaggle account and API.
-### Use
+
+### Files and Directories
+
+
+### Usage
 -folder structure, files
-### How to Run
+-How to Run
+
+#### Config file
+
+### Generated files
 
 
 ### Dataset
--EDA Results
--Data Pre-Processing
+The dataset is organized into 3 folders (train, test, val) and contains subfolders for
+each image category (Pneumonia/Normal). There are 5,856 X-Ray images (JPEG) and 2 categories (Pneumonia/Normal).
 
 Dataset Name: Chest X-Ray Images (Pneumonia)
 Dataset Link: [Kaggle Chest Xray(Pneumonia) dataset](https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia)
@@ -45,14 +61,43 @@ Number/Size of Images   : Total      : 5856 (1.15 Gigabyte (GB))
                           Testing    : 624  
 ```
 #### Sample Input:
-<img src="images/input_normal.jpeg" width="200">
 
-![alt text](images/input_normal.jpeg)<!-- .element height="10%" width="50%" -->
+![Normal xray](images/input_normal.jpeg "Normal X-ray") 
+![Pneumonia xray](images/input_pneumonia.jpeg "Pneumonia X-ray")
+
+#### Training images by category: 
+
+![traindata](output/data_analysis/plots/train_category.png)
+
+Note: The training set is an imbalanced dataset for Normal & PNEUMONIA (about 1:3)
+
+#### Image pre-processing:
+To prepare the images for the network, they were resized to 224 x 224 and normalized by 
+subtracting a mean value and dividing by a standard deviation. The validation and testing data was not augmented 
+but only resized and normalized. The normalization values are standardized for Imagenet.
+
+```
+image_transforms = {
+    # Train uses data augmentation
+    'train':
+    transforms.Compose([
+        transforms.RandomResizedCrop(size=256, scale=(0.8, 1.0)),
+        transforms.RandomRotation(degrees=15),
+        transforms.ColorJitter(),
+        transforms.RandomHorizontalFlip(),
+        transforms.CenterCrop(size=224),  # Image net standards
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225])  # Imagenet standards
+    ]),  
+```
+
 
  ### Models
--VGG-16 and ResNet-50
--Transfer Learning Details
-    
+The project uses models built using transfer learning with PyTorch. The models supported are [VGG16](https://arxiv.org/pdf/1409.1556.pdf) and 
+[ResNet-50](https://arxiv.org/pdf/1512.03385.pdf). 
+
+
 ### Results
 - Hyperparameter tuning experiments
 - Metrics (Acc, F1, Confusion matrix)
