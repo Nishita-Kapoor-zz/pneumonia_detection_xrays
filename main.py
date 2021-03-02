@@ -13,7 +13,7 @@ import os
 # Main function
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", help="Path of config file, e.g. configs/config.yaml", default="configs/final/config.yaml",
+    parser.add_argument("--config", help="Path of config file, e.g. configs/config_resnet50.yaml", default="configs/final/config_resnet50.yaml",
                         type=str)
     args = parser.parse_args()
 
@@ -31,6 +31,6 @@ def main():
         task_map[task](**cfg)
 
 # How to run:
-# python main.py --config configs/config.yaml
+# python main.py --config configs/config_resnet50.yaml
 if __name__ == '__main__':
     main()

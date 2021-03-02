@@ -34,10 +34,10 @@ def predict(**cfg):
     _, pred = torch.max(output, 1)
 
     # Check prediction - Normal or Pneumonia
-    if pred == 0:
-        print("Prediction: Normal")
-    elif pred == 1:
-        print("Prediction: Pneumonia! Please see a doctor ASAP!.")
+    #if pred == 0:
+    print("Prediction: " + str(model.idx_to_class[pred]))
+    #elif pred == 1:
+    #    print("Prediction: Pneumonia! Please see a doctor ASAP!.")
 
 
 def evaluate(**cfg):

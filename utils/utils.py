@@ -56,6 +56,7 @@ def save_and_plot_results(history, save_path):
     for c in ['train_loss', 'valid_loss']:
         plt.plot(
             history[c], label=c)
+    plt.grid()
     plt.legend()
     plt.xlabel('Epoch')
     plt.ylabel('Average Negative Log Likelihood')
@@ -67,6 +68,7 @@ def save_and_plot_results(history, save_path):
     for c in ['train_acc', 'valid_acc']:
         plt.plot(
             100 * history[c], label=c)
+    plt.grid()
     plt.legend()
     plt.xlabel('Epoch')
     plt.ylabel('Average Accuracy')
@@ -192,10 +194,10 @@ def load_checkpoint(**cfg):
     optimizer = checkpoint['optimizer']
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-    if multi_gpu:
-        summary(model.module, input_size=(3, 224, 224), batch_size=cfg['evaluate']['batch_size'])
-    else:
-        summary(model, input_size=(3, 224, 224), batch_size=cfg['evaluate']['batch_size'])
+    #if multi_gpu:
+    #    summary(model.module, input_size=(3, 224, 224), batch_size=cfg['evaluate']['batch_size'])
+    #else:
+    #    summary(model, input_size=(3, 224, 224), batch_size=cfg['evaluate']['batch_size'])
 
     return model, optimizer
 
@@ -213,4 +215,38 @@ def check_gpu():
         else:
             multi_gpu = False
     return train_on_gpu, multi_gpu
+
+
+def f1score(target, pred, is_training=False):
+    '''Calculate F1 score. Can work with gpu tensors
+
+        The original implmentation is written by Michal Haltuf on Kaggle.
+
+        Returns
+        -------
+        torch.Tensor
+            `ndim` == 1. 0 <= val <= 1
+
+    '''
+    assert target.ndim == 1
+    assert pred.ndim == 1 or pred.ndim == 2
+
+    if pred.ndim == 2:
+        pred = pred.argmax(dim=1)
+
+    tp = (target * pred).sum().to(torch.float32)
+    tn = ((1 - target) * (1 - pred)).sum().to(torch.float32)
+    fp = ((1 - target) * pred).sum().to(torch.float32)
+    fn = (target * (1 - pred)).sum().to(torch.float32)
+
+    epsilon = 1e-7
+
+    precision = tp / (tp + fp + epsilon)
+    recall = tp / (tp + fn + epsilon)
+
+    f1 = 2 * (precision * recall) / (precision + recall + epsilon)
+    f1.requires_grad = is_training
+    return f1
+
+
 
