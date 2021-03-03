@@ -22,25 +22,22 @@ def train(**cfg):
 
      Returns
      --------
-         model (PyTorch model): trained cnn with best weights
-         history (DataFrame): history of train and validation loss and accuracy
+         None, saves checkpoint and results in output directory
      """
 
+    # Define checkpoint path
     save_path = "./output/train/" + cfg["run_name"] + "/"
     checkpoint_path = save_path + "checkpoint.pth"
 
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
+    # Load dataset and pre-trained model
     data, dataloaders = create_dataloaders(cfg['datadir'], batch_size=cfg["train"]['batch_size'])
-
-    max_epochs_stop = 5
-    print_every = 2
-
     model = get_pretrained_model(model_name=cfg["model"])
 
-    train_on_gpu, multi_gpu = check_gpu()
     # Move to gpu and parallelize
+    train_on_gpu, multi_gpu = check_gpu()
     if train_on_gpu:
         model = model.to('cuda')
     if multi_gpu:
@@ -61,6 +58,7 @@ def train(**cfg):
         for class_, idx in model.class_to_idx.items()
     }
 
+    # Set criterion and optimizer
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.parameters())
     model.optimizer = optimizer
@@ -68,14 +66,17 @@ def train(**cfg):
     # Early stopping initialization
     epochs_no_improve = 0
     valid_loss_min = np.Inf
+    max_epochs_stop = 5
+    print_every = 2
     history = []
+    overall_start = timer()
+
     # Number of epochs already trained (if using loaded in model weights)
     try:
         print(f'Model has been trained for: {model.epochs} epochs.\n')
     except:
         model.epochs = 0
         print(f'Starting Training from Scratch.\n')
-    overall_start = timer()
 
     # Main loop
     for epoch in range(cfg["train"]["n_epochs"]):
@@ -87,7 +88,7 @@ def train(**cfg):
         # Set to training
         model.train()
         start = timer()
-        # Training loop
+        # Training loop for batches
         for ii, (data, target) in tqdm(enumerate(dataloaders["train"])):
             # Tensors to gpu
             if train_on_gpu:
@@ -117,7 +118,6 @@ def train(**cfg):
                 end='\r')
 
         # After training loops ends, start validation
-
         model.epochs += 1
         # Don't need to keep track of gradients
         with torch.no_grad():
@@ -160,11 +160,9 @@ def train(**cfg):
             if valid_loss < valid_loss_min:
                 # Save model
                 save_checkpoint(model, checkpoint_path)
-                # torch.save(model.state_dict(), checkpoint)
                 # Track improvement
                 epochs_no_improve = 0
                 valid_loss_min = valid_loss
-                # valid_best_acc = valid_acc
                 best_epoch = epoch
             # Otherwise increment count of epochs with no improvement
             else:

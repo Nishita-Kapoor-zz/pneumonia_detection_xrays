@@ -15,7 +15,7 @@ def data_analysis(**cfg):
     if not os.path.exists("./output/data_analysis/plots/"):
         os.makedirs("./output/data_analysis/plots/")
 
-    # Plot 1: Count of categories
+    # Plot 1: Count of Training images by category
     cat_df.set_index('category')['n_train'].plot.bar(
         color='c', figsize=(20, 6))
     plt.xticks(rotation=0)

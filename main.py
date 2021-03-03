@@ -24,6 +24,7 @@ def main():
 
     os.environ["CUDA_VISIBLE_DEVICES"] = cfg["gpus"]
 
+    # Which script to run, as per config setting
     task_map = {"EDA": data_analysis, "train": train,
                 "evaluate": evaluate, "predict": predict}
 

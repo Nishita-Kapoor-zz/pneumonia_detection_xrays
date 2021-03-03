@@ -32,9 +32,11 @@ def get_pretrained_model(model_name):
     elif model_name == 'resnet50':
         model = models.resnet50(pretrained=True)
 
+        # Freeze early layers
         for param in model.parameters():
             param.requires_grad = False
 
+        # Add on classifier
         n_inputs = model.fc.in_features
         model.fc = nn.Sequential(
             nn.Linear(n_inputs, 256), nn.ReLU(), nn.Dropout(0.2),

@@ -7,6 +7,11 @@ from utils.utils import load_checkpoint, check_gpu
 import os
 import pandas as pd
 from torchvision import transforms
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, precision_recall_fscore_support
+import tkinter
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 def predict(**cfg):
 
@@ -34,14 +39,12 @@ def predict(**cfg):
     _, pred = torch.max(output, 1)
 
     # Check prediction - Normal or Pneumonia
-    #if pred == 0:
     print("Prediction: " + str(model.idx_to_class[pred]))
-    #elif pred == 1:
-    #    print("Prediction: Pneumonia! Please see a doctor ASAP!.")
 
 
 def evaluate(**cfg):
 
+    # Load data, checkpoint and gpu status
     data_d, dataloaders = create_dataloaders(cfg['datadir'], batch_size=cfg['evaluate']['batch_size'])
     model, optimizer = load_checkpoint(**cfg)
     train_on_gpu, multi_gpu = check_gpu()
@@ -57,13 +60,17 @@ def evaluate(**cfg):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
+    # Initialize dict to save final metrics
     results_dict = {}
+
     # Iterate in all data_splits
     for data_split in data_splits:
         
         evaluation_loader = dataloaders[data_split]
         evaluation_loss = 0.0
         evaluation_acc = 0.0
+        pred_list = []
+        target_list = []
 
         class_correct = list(0. for i in range(2))
         class_total = list(0. for i in range(2))
@@ -89,6 +96,9 @@ def evaluate(**cfg):
             evaluation_loss += loss.item() * data.size(0)
             # convert output probabilities to predicted class
             _, pred = torch.max(output, 1)
+            # Compile all pred and target in list
+            pred_list.extend(pred.squeeze().tolist())
+            target_list.extend(target.squeeze().tolist())
             # compare predictions to true label
             correct_tensor = pred.eq(target.data.view_as(pred))
             accuracy = torch.mean(correct_tensor.type(torch.FloatTensor))
@@ -106,7 +116,6 @@ def evaluate(**cfg):
         evaluation_loss = evaluation_loss / len(evaluation_loader.dataset)
         print(str(data_split).capitalize() + ' Loss: {:.6f}\n'.format(evaluation_loss))
         evaluation_acc = evaluation_acc / len(evaluation_loader.dataset)
-        results_dict[data_split] = [evaluation_loss, evaluation_acc]
 
         for i in range(2):
             if class_total[i] > 0:
@@ -120,6 +129,21 @@ def evaluate(**cfg):
             100. * np.sum(class_correct) / np.sum(class_total),
             np.sum(class_correct), np.sum(class_total)))
 
-    results_df = pd.DataFrame(results_dict, index=['Loss', 'Accuracy'])
-    results_df.to_csv(save_path + "results.csv")
+        # Calculate all metrics
+        clf_rep = precision_recall_fscore_support(target_list, pred_list)
+        precision = clf_rep[0].round(2)
+        recall = clf_rep[1].round(2)
+        f1_score = clf_rep[2].round(2)
 
+        # Save confusion matrix
+        cm = confusion_matrix(target_list, pred_list)
+        cm_disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+        cm_disp.plot()
+        plt.title(str(data_split).capitalize() + " Set: " + str(len(evaluation_loader.dataset)) + " images")
+        plt.savefig(save_path + "confusion_matrix_" + str(data_split) + ".png")
+
+        # Save all metrics in dict
+        results_dict[data_split] = [evaluation_loss, evaluation_acc, precision, recall, f1_score]
+
+    results_df = pd.DataFrame(results_dict, index=['Loss', 'Accuracy', 'Precision', 'Recall', 'F1_Score'])
+    results_df.to_csv(save_path + "results.csv")

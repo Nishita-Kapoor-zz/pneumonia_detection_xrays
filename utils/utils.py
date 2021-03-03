@@ -39,6 +39,17 @@ def imshow_tensor(image, ax=None):
 
 
 def save_and_plot_results(history, save_path):
+    """Saves a dataframe and loss and accuracy plots to output folder
+
+        Params
+        -------
+            history (list): list containing loss and accuracy for train and val
+            save_path: path where to save plots and csv
+        Returns
+        --------
+        None, save the results to `save_path`
+
+    """
 
     # Create a pandas Dataframe
     history = pd.DataFrame(
@@ -135,11 +146,11 @@ def load_checkpoint(**cfg):
 
     Params
     --------
-        path (str): saved model checkpoint. Must start with `model_name-` and end in '.pth'
+        **cfg: Parameters from config file
 
     Returns
     --------
-        None, save the `model` to `path`
+        model, optimizer of saved checkpoint
 
     """
     train_on_gpu, multi_gpu = check_gpu()
@@ -194,15 +205,18 @@ def load_checkpoint(**cfg):
     optimizer = checkpoint['optimizer']
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-    #if multi_gpu:
-    #    summary(model.module, input_size=(3, 224, 224), batch_size=cfg['evaluate']['batch_size'])
-    #else:
-    #    summary(model, input_size=(3, 224, 224), batch_size=cfg['evaluate']['batch_size'])
-
     return model, optimizer
 
 
 def check_gpu():
+    ''' Checks if and how many gpu availale
+
+        Returns
+        -------
+          train_on_gpu (Bool) : True if gpu available
+          multi_gpu (Bool) : True if more than 1 gpu available
+    '''
+
     train_on_gpu = cuda.is_available()
     print(f'Train on gpu: {train_on_gpu}')
 
@@ -246,7 +260,7 @@ def f1score(target, pred, is_training=False):
 
     f1 = 2 * (precision * recall) / (precision + recall + epsilon)
     f1.requires_grad = is_training
-    return f1
+    return f1, precision, recall
 
 
 

@@ -62,8 +62,7 @@ Number/Size of Images   : Total      : 5856 (1.15 Gigabyte (GB))
 ```
 #### Sample Input:
 
-![Normal xray](images/input_normal.jpeg "Normal X-ray") 
-![Pneumonia xray](images/input_pneumonia.jpeg "Pneumonia X-ray")
+![Normal xray](images/sample_images.png)
 
 #### Training images by category: 
 
