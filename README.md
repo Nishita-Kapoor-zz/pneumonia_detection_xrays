@@ -106,8 +106,8 @@ The project uses models built using transfer learning with PyTorch. The models s
 Please see [LICENSE](./LICENSE)
     
 ### Acknowledgements
-I do not claim ownership for this program. This was used as a learning experience; 
-this code is from the Kaggle notebook found [here](https://www.kaggle.com/dnik007/pneumonia-detection-using-pytorch/comments)
+The project is intended purely as a learning experience. The framework was built based on the
+original code found in Kaggle [here](https://www.kaggle.com/dnik007/pneumonia-detection-using-pytorch/comments). 
 
 ### Footer
 Please feel free to contribute/use the repo as per need. In case of any questions,

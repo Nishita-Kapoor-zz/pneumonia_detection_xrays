@@ -79,17 +79,18 @@ def train(**cfg):
         print(f'Starting Training from Scratch.\n')
 
     # Main loop
-    for epoch in range(cfg["train"]["n_epochs"]):
+    for epoch in tqdm(range(cfg["train"]["n_epochs"])):
         # keep track of training and validation loss each epoch
         train_loss = 0.0
         valid_loss = 0.0
         train_acc = 0
         valid_acc = 0
+
         # Set to training
         model.train()
         start = timer()
         # Training loop for batches
-        for ii, (data, target) in tqdm(enumerate(dataloaders["train"])):
+        for ii, (data, target) in enumerate(dataloaders["train"]):
             # Tensors to gpu
             if train_on_gpu:
                 data, target = data.cuda(), target.cuda()
@@ -113,9 +114,10 @@ def train(**cfg):
             train_acc += accuracy.item() * data.size(0)
             # Track training progress
             print(
-                f'Epoch: {epoch}\t{100 * (ii + 1) / len(dataloaders["train"]):.2f}% complete. {timer() - start:.2f} '
+                f'Epoch: {epoch}\t{100 * (ii + 1) / len(dataloaders["train"]): .2f}% complete. {timer() - start:.2f} '
                 f'seconds elapsed in epoch.',
                 end='\r')
+
 
         # After training loops ends, start validation
         model.epochs += 1
