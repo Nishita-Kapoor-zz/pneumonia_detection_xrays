@@ -34,7 +34,10 @@ def train(**cfg):
 
     # Load dataset and pre-trained model
     data, dataloaders = create_dataloaders(cfg['datadir'], batch_size=cfg["train"]['batch_size'])
+    print("Found {} train, {} val, {} test images".format(len(data['train']), len(data['val']), len(data['test'])))
+
     model = get_pretrained_model(model_name=cfg["model"])
+    print("Loaded model: {} \n".format(cfg["model"]))
 
     # Move to gpu and parallelize
     train_on_gpu, multi_gpu = check_gpu()
@@ -42,15 +45,6 @@ def train(**cfg):
         model = model.to('cuda')
     if multi_gpu:
         model = nn.DataParallel(model)
-    if multi_gpu:
-        summary(
-            model.module,
-            input_size=(3, 224, 224),
-            batch_size=cfg["train"]["batch_size"],
-            device='cuda')
-    else:
-        summary(
-            model, input_size=(3, 224, 224), batch_size=cfg["train"]["batch_size"], device='cuda')
 
     model.class_to_idx = data['train'].class_to_idx
     model.idx_to_class = {
@@ -76,7 +70,7 @@ def train(**cfg):
         print(f'Model has been trained for: {model.epochs} epochs.\n')
     except:
         model.epochs = 0
-        print(f'Starting Training from Scratch.\n')
+        print(f'Starting Training from Scratch.')
 
     # Main loop
     for epoch in tqdm(range(cfg["train"]["n_epochs"])):
@@ -117,7 +111,6 @@ def train(**cfg):
                 f'Epoch: {epoch}\t{100 * (ii + 1) / len(dataloaders["train"]): .2f}% complete. {timer() - start:.2f} '
                 f'seconds elapsed in epoch.',
                 end='\r')
-
 
         # After training loops ends, start validation
         model.epochs += 1
@@ -162,6 +155,8 @@ def train(**cfg):
             if valid_loss < valid_loss_min:
                 # Save model
                 save_checkpoint(model, checkpoint_path)
+                save_and_plot_results(history, save_path)
+
                 # Track improvement
                 epochs_no_improve = 0
                 valid_loss_min = valid_loss
@@ -179,9 +174,11 @@ def train(**cfg):
                     print(
                         f'{total_time:.2f} total seconds elapsed. {total_time / (epoch + 1):.2f} seconds per epoch.'
                     )
+
                     # Load the best state dict
-                    load_checkpoint(**cfg)
+                    #model = load_checkpoint(**cfg)
                     save_and_plot_results(history, save_path)
+                    break
 
     # Record overall time and print out stats
     total_time = timer() - overall_start
@@ -193,5 +190,5 @@ def train(**cfg):
     )
 
     save_and_plot_results(history, save_path)
-    save_checkpoint(model, checkpoint_path)
+    #save_checkpoint(model, checkpoint_path)
 

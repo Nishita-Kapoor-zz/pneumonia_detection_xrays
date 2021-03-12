@@ -20,7 +20,7 @@ def main():
     # Read config file
     with open(str(args.config), "r") as ymlfile:
         cfg = yaml.safe_load(ymlfile)
-        print(cfg)
+        print("Config params: " + str(cfg) + "\n")
 
     os.environ["CUDA_VISIBLE_DEVICES"] = cfg["gpus"]
 

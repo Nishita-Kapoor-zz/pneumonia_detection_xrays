@@ -27,7 +27,7 @@ def predict(**cfg):
     image = loader(Image.open(cfg["predict"]["image_path"]).convert("RGB")).float().unsqueeze(0)
 
     # Load Model
-    model, _ = load_checkpoint(**cfg)
+    model = load_checkpoint(**cfg)
 
     # Check GPU availability
     train_gpu, _ = check_gpu()
@@ -46,7 +46,7 @@ def evaluate(**cfg):
 
     # Load data, checkpoint and gpu status
     data_d, dataloaders = create_dataloaders(cfg['datadir'], batch_size=cfg['evaluate']['batch_size'])
-    model, optimizer = load_checkpoint(**cfg)
+    model = load_checkpoint(**cfg)
     train_on_gpu, multi_gpu = check_gpu()
 
     # Set default split as test

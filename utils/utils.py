@@ -205,7 +205,7 @@ def load_checkpoint(**cfg):
     optimizer = checkpoint['optimizer']
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-    return model, optimizer
+    return model
 
 
 def check_gpu():

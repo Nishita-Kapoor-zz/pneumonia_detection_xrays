@@ -14,7 +14,6 @@ the classification of abnormal and normal chest X-Rays.
 ## Table of Contents
 
 - [Installation](#installation)  
-- [Files and Directories](#files-and-directories)
 - [Usage](#usage)  
 - [Data](#dataset)    
 - [Models](#models)    
@@ -35,17 +34,49 @@ pip install -r requirements.txt
 Next download data from Kaggle following this [link](https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia).
 Note - downloading data from Kaggle requires Kaggle account and API.
 
-### Files and Directories
-
-
 ### Usage
--folder structure, files
--How to Run
+The code in this repo can be run by ```python main.py --config config.yaml``` 
+by modifying configurations in the config file.
 
 #### Config file
+Config files are in ```.yaml``` format:
 
-### Generated files
+```yaml
+# Output files/checkpoints will be stored with this run-name folder structure.
+# Ensure the run_name starts with model name, e.g. "vgg16-pneumonia-run1" or "resnet50-debug"
 
+run_name: "resnet50-pneumonia-run1"  
+
+datadir: "datasets/chest_xray"    // dataset path
+
+#Choose from "vgg16" or "resnet50"
+
+model: "resnet50"   //name of model architecture to train
+gpus: "0"           // which GPU to use`in case of Multi-gpu
+
+# Each task will be run sequentially one after the other in the given order:
+# "EDA": For dataset analysis
+# "train" : Training mode
+# "evaluate" : To evaluate a testset folder
+# "predict" : Single Image predictions
+
+tasks: ["EDA","train"]       //Choose from "EDA", "train", "evaluate", "predict"
+
+train:
+  batch_size: 8          //training batch-size
+  n_epochs: 10           // number of epochs to train on
+  optimizer: "Adam"      // optimizer 
+  
+
+evaluate:
+  batch_size: 8                 //testing batch-size
+  data_split: ['test']          //which dataset to evaluate, choose between 'train', 'val', 'test'
+
+predict:
+  image_path: "/home/nishita/datasets/chest_xray/train/PNEUMONIA/person1_bacteria_2.jpeg"  
+  //single image path
+
+```
 
 ### Dataset
 The dataset is organized into 3 folders (train, test, val) and contains subfolders for
@@ -53,11 +84,24 @@ each image category (Pneumonia/Normal). There are 5,856 X-Ray images (JPEG) and 
 
 Dataset Name: Chest X-Ray Images (Pneumonia)
 Dataset Link: [Kaggle Chest Xray(Pneumonia) dataset](https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia)
+The original Kaggle dataset has the following distribution, with only 16 images in val folder.
 ```
+Original Kaggle Dataset:
 Number of Class         : 2
 Number/Size of Images   : Total      : 5856 (1.15 Gigabyte (GB))
                           Training   : 5216 
                           Validation : 16  
+                          Testing    : 624  
+```
+Images were transferred from train to val folder to have enough images in the val.
+The modified dataset used in this repo has following distribution:
+
+```
+Modified Dataset:
+Number of Class         : 2
+Number/Size of Images   : Total      : 5856 (1.15 Gigabyte (GB))
+                          Training   : 5000 
+                          Validation : 232 
                           Testing    : 624  
 ```
 #### Sample Input:
@@ -66,9 +110,10 @@ Number/Size of Images   : Total      : 5856 (1.15 Gigabyte (GB))
 
 #### Training images by category: 
 
-![traindata](output/data_analysis/plots/train_category.png)
+![traindata](images/train_category.png)
 
-Note: The training set is an imbalanced dataset for Normal & PNEUMONIA (about 1:3)
+Note: The training set is an imbalanced dataset for Normal & PNEUMONIA (about 1:3). Hence, 
+```WeightedRandomSampler``` was implemented to deal with the imbalanced dataset.
 
 #### Image pre-processing:
 To prepare the images for the network, they were resized to 224 x 224 and normalized by 
@@ -98,9 +143,22 @@ The project uses models built using transfer learning with PyTorch. The models s
 
 
 ### Results
-- Hyperparameter tuning experiments
-- Metrics (Acc, F1, Confusion matrix)
-- Training Curves (plots of train, val) for both models
+
+- **Training Curves** 
+
+- **Model performances**:
+  
+
+|               |  VGG16    | ResNet50  |
+| ------------- |:---------:| ---------:|
+| Accuracy      |           |           |
+| F1 Score      |           |           |
+| Precision     |           |           |
+| Recall        |           |           |
+
+
+- **Confusion Matrix**
+
     
 ### License
 Please see [LICENSE](./LICENSE)
