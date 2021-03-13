@@ -35,7 +35,7 @@ Next download data from Kaggle following this [link](https://www.kaggle.com/paul
 Note - downloading data from Kaggle requires Kaggle account and API.
 
 ### Usage
-The code in this repo can be run by ```python main.py --config config.yaml``` 
+The code in this repo can be run by ```python main.py --config configs/final/<config_name>.yaml``` 
 by modifying configurations in the config file.
 
 #### Config file
@@ -47,12 +47,12 @@ Config files are in ```.yaml``` format:
 
 run_name: "resnet50-pneumonia-run1"  
 
-datadir: "datasets/chest_xray"    // dataset path
+datadir: "datasets/chest_xray"    
 
-#Choose from "vgg16" or "resnet50"
+# Choose from "vgg16" or "resnet50"
 
-model: "resnet50"   //name of model architecture to train
-gpus: "0"           // which GPU to use`in case of Multi-gpu
+model: "resnet50"   
+gpus: "0"                      # which GPU to use in case of Multi-gpu
 
 # Each task will be run sequentially one after the other in the given order:
 # "EDA": For dataset analysis
@@ -60,30 +60,33 @@ gpus: "0"           // which GPU to use`in case of Multi-gpu
 # "evaluate" : To evaluate a testset folder
 # "predict" : Single Image predictions
 
-tasks: ["EDA","train"]       //Choose from "EDA", "train", "evaluate", "predict"
+tasks: ["EDA","train"]         # Choose from "EDA", "train", "evaluate", "predict"
 
+# Training Parameters
 train:
-  batch_size: 8          //training batch-size
-  n_epochs: 10           // number of epochs to train on
-  optimizer: "Adam"      // optimizer 
+  batch_size: 8          
+  n_epochs: 10           
+  optimizer: "Adam"       
   
-
+# Evaluate Parameters
 evaluate:
-  batch_size: 8                 //testing batch-size
-  data_split: ['test']          //which dataset to evaluate, choose between 'train', 'val', 'test'
+  batch_size: 8                 
+  data_split: ['test']          # which dataset to evaluate, choose between 'train', 'val', 'test'
 
+# Single Image Prediction
 predict:
   image_path: "/home/nishita/datasets/chest_xray/train/PNEUMONIA/person1_bacteria_2.jpeg"  
-  //single image path
 
 ```
 
 ### Dataset
-The dataset is organized into 3 folders (train, test, val) and contains subfolders for
-each image category (Pneumonia/Normal). There are 5,856 X-Ray images (JPEG) and 2 categories (Pneumonia/Normal).
+Dataset Name: Chest X-Ray Images (Pneumonia) 
 
-Dataset Name: Chest X-Ray Images (Pneumonia)
-Dataset Link: [Kaggle Chest Xray(Pneumonia) dataset](https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia)
+Download Link: [Kaggle Chest Xray(Pneumonia) dataset](https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia)
+
+The dataset is organized into 3 folders (train, test, val) and contains subfolders for
+each image category (Pneumonia/Normal). All images are ```.jpeg``` grayscale with varying input sizes.
+
 The original Kaggle dataset has the following distribution, with only 16 images in val folder.
 ```
 Original Kaggle Dataset:
@@ -93,8 +96,9 @@ Number/Size of Images   : Total      : 5856 (1.15 Gigabyte (GB))
                           Validation : 16  
                           Testing    : 624  
 ```
-Images were transferred from train to val folder to have enough images in the val.
-The modified dataset used in this repo has following distribution:
+The existing data distribution has too few validation images (16). 
+To improve this further, 216 images (108 Normal and 108 Pneumonia) were transferred from training set 
+to validation set. The modified dataset used in this repo has following distribution:
 
 ```
 Modified Dataset:
@@ -112,7 +116,7 @@ Number/Size of Images   : Total      : 5856 (1.15 Gigabyte (GB))
 
 ![traindata](images/train_category.png)
 
-Note: The training set is an imbalanced dataset for Normal & PNEUMONIA (about 1:3). Hence, 
+Note: The training set is an imbalanced dataset for Normal & Pneumonia (about 1:3). Hence, 
 ```WeightedRandomSampler``` was implemented to deal with the imbalanced dataset.
 
 #### Image pre-processing:
@@ -143,23 +147,35 @@ The project uses models built using transfer learning with PyTorch. The models s
 
 
 ### Results
+As expected, ResNet50 outperformed the VGG-16 on all metrics. 
+
+Training was done only on a single Asus ROG laptop GPU (Nvidia GTX965M).
+Training Time was approx 4-5 mins per epoch.
 
 - **Training Curves** 
 
+![trainingaccuracy](images/training_accuracies.png)
+
+
+![trainingaccuracy](images/training_loss.png)
+
 - **Model performances**:
   
+The following was observed on the Test set (624 images) -
 
 |               |  VGG16    | ResNet50  |
 | ------------- |:---------:| ---------:|
-| Accuracy      |           |           |
-| F1 Score      |           |           |
-| Precision     |           |           |
-| Recall        |           |           |
+| **Accuracy**  |    79%    |    85%    |
+| **F1 Score**  |    0.76   |    0.83   |
+| **Precision** |    0.81   |    0.87   |
+| **Recall**    |    0.75   |    0.81   |
 
 
 - **Confusion Matrix**
 
-    
+![confusionmatrix](images/confusion_matrices.png)
+
+From the confusion matrix, it seems that ResNet50 is a better choice due to fewer False Negatives (13) in comparison to VGG-16 (24).    
 ### License
 Please see [LICENSE](./LICENSE)
     
